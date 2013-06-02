@@ -30,10 +30,10 @@ from MultiPart import MultiPartUpload
 from S3Uri import S3Uri
 from ConnMan import ConnMan
 
-if self.s3.config.guess_mime_type_by_extension
+if self.s3.config.guess_mime_type_by_extension:
     def mime_magic(file):
         return mimetypes.guess_type(file)
-else
+else:
     try:
         import magic, gzip
         try:
