@@ -75,6 +75,7 @@ class Config(object):
     bucket_location = "US"
     default_mime_type = "binary/octet-stream"
     guess_mime_type = True
+    guess_mime_type_by_extension = True
     mime_type = ""
     enable_multipart = True
     multipart_chunk_size_mb = 15    # MB
