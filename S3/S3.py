@@ -30,8 +30,65 @@ from MultiPart import MultiPartUpload
 from S3Uri import S3Uri
 from ConnMan import ConnMan
 
-def mime_magic(file):
-    return mimetypes.guess_type(file)
+if self.s3.config.guess_mime_type_by_extension
+    def mime_magic(file):
+        return mimetypes.guess_type(file)
+else
+    try:
+        import magic, gzip
+        try:
+            ## https://github.com/ahupp/python-magic
+            magic_ = magic.Magic(mime=True)
+            def mime_magic_file(file):
+                return magic_.from_file(file)
+            def mime_magic_buffer(buffer):
+                return magic_.from_buffer(buffer)
+        except TypeError:
+            ## http://pypi.python.org/pypi/filemagic
+            try:
+                magic_ = magic.Magic(flags=magic.MAGIC_MIME)
+                def mime_magic_file(file):
+                    return magic_.id_filename(file)
+                def mime_magic_buffer(buffer):
+                    return magic_.id_buffer(buffer)
+            except TypeError:
+                ## file-5.11 built-in python bindings
+                magic_ = magic.open(magic.MAGIC_MIME)
+                magic_.load()
+                def mime_magic_file(file):
+                    return magic_.file(file)
+                def mime_magic_buffer(buffer):
+                    return magic_.buffer(buffer)
+
+        except AttributeError:
+            ## Older python-magic versions
+            magic_ = magic.open(magic.MAGIC_MIME)
+            magic_.load()
+            def mime_magic_file(file):
+                return magic_.file(file)
+            def mime_magic_buffer(buffer):
+                return magic_.buffer(buffer)
+
+        def mime_magic(file):
+            type = mime_magic_file(file)
+            if type != "application/x-gzip; charset=binary":
+                return (type, None)
+            else:
+                return (mime_magic_buffer(gzip.open(file).read(8192)), 'gzip')
+
+    except ImportError, e:
+        if str(e).find("magic") >= 0:
+            magic_message = "Module python-magic is not available."
+        else:
+            magic_message = "Module python-magic can't be used (%s)." % e.message
+        magic_message += " Guessing MIME types based on file extensions."
+        magic_warned = False
+        def mime_magic(file):
+            global magic_warned
+            if (not magic_warned):
+                warning(magic_message)
+                magic_warned = True
+            return mimetypes.guess_type(file)
 
 __all__ = []
 class S3Request(object):
